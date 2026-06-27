@@ -23,7 +23,7 @@ class Product(TimeStampMixin):
     
 class ProductImage(TimeStampMixin):
     product = models.ForeignKey(to=Product, on_delete=models.CASCADE, related_name='product_images')
-    image = models.ImageField(upload_to='/products/images')
+    image = models.ImageField(upload_to='products/images/')
 
 
     def __str__(self) -> str:
@@ -31,7 +31,7 @@ class ProductImage(TimeStampMixin):
 
 class ProductVariant(TimeStampMixin):
     product = models.ForeignKey(to=Product, on_delete=models.CASCADE, related_name='product_variants')
-    image = models.ImageField(upload_to='/products/images')
+    image = models.ImageField(upload_to='products/images/')
     color = models.CharField(max_length=100)
     stock = models.PositiveIntegerField(default=0)
 
