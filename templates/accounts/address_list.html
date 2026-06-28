@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Addresses</title>
+</head>
+<body>
+    <h2>My Addresses</h2>
+
+    <a href="{% url 'address_create' %}">Add New Address</a>
+    <p><a href="{% url 'profile' %}">Back to Profile</a></p>
+
+    {% if addresses %}
+        <ul>
+            {% for address in addresses %}
+                <li>
+                    {{ address.street }}, {{ address.city }}, {{ address.postal_code }}, {{ address.country }}
+                    <br>
+                    <a href="{% url 'address_update' address.pk %}">Edit</a> |
+                    <a href="{% url 'address_delete' address.pk %}">Delete</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No addresses added yet.</p>
+    {% endif %}
+</body>
+</html>
