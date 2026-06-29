@@ -55,7 +55,6 @@ def profile(request):
         form = ProfileForm(instance=customer)
     return render(request, 'accounts/profile.html', {'form': form})
 
-
 @login_required
 def address_create(request):
     if request.method == 'POST':
