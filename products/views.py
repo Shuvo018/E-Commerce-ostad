@@ -20,3 +20,13 @@ def product_list(request):
         'current_category': current_category,
     })
 
+def product_detail_view(request, pk):
+    product = Product.objects.filter(pk=pk).first()
+    if product:
+        return render(request,
+                    'products/product_detail.html',
+                    {'product': product,})
+    else:
+        return render(request,
+            'products/product_detail.html',
+            {'message': 'Product detail not found',})
