@@ -16,5 +16,9 @@ class CartItem(TimeStampMixin):
     variant = models.ForeignKey(to=ProductVariant, on_delete=models.CASCADE, related_name='variants')
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
 
+    @property
+    def subtotal(self):
+        return self.variant.product.price * self.quantity
+
     def __str__(self) -> str:
         return f'Cart Item-{self.id} of {self.cart.id}'
