@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container py-5">
+
+  <h1 class="h2 mb-4">Your Cart</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if items %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th style="width: 160px;">Quantity</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  {% if item.variant.product.product_images.first %}
+                    <img src="{{ item.variant.product.product_images.first.image.url }}"
+                         alt="{{ item.variant.product.product_name }}"
+                         class="rounded"
+                         style="width: 64px; height: 64px; object-fit: cover;">
+                  {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                         style="width: 64px; height: 64px;">
+                      <span class="text-muted small">No image</span>
+                    </div>
+                  {% endif %}
+                  <div>
+                    <div class="fw-semibold">{{ item.variant.product.product_name }}</div>
+                    {% if item.variant.name %}
+                      <div class="text-muted small">{{ item.variant.name }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>${{ item.variant.product.price }}</td>
+              <td>
+                <form method="post" action="{% url 'update_cart_item' item.pk %}" class="d-flex align-items-center gap-2">
+                  {% csrf_token %}
+                  <input type="number"
+                         name="quantity"
+                         value="{{ item.quantity }}"
+                         min="1"
+                         max="{{ item.variant.stock }}"
+                         class="form-control form-control-sm"
+                         style="width: 70px;">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
+                </form>
+              </td>
+              <td class="fw-semibold">${{ item.subtotal }}</td>
+              <td>
+                <form method="post" action="{% url 'update_cart_item' item.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="quantity" value="0">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-flex justify-content-end mt-4">
+      <div class="text-end">
+        <p class="fs-5 mb-2">Total: <span class="fw-bold">${{ total_price }}</span></p>
+        <a href="#" class="btn btn-primary btn-lg">Proceed to Checkout</a>
+      </div>
+    </div>
+
+  {% else %}
+    <div class="text-center py-5">
+      <p class="text-muted fs-5">Your cart is empty.</p>
+      <a href="{% url 'product_list' %}" class="btn btn-primary">Browse Products</a>
+    </div>
+  {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -6,10 +6,10 @@ from products.models import ProductVariant
 # Create your models here.
 
 class Cart(TimeStampMixin):
-    Customer = models.ForeignKey(to=CustomerProfile, on_delete=models.CASCADE, related_name='carts')
+    customer = models.ForeignKey(to=CustomerProfile, on_delete=models.CASCADE, related_name='carts')
 
     def __str__(self) -> str:
-        return f'Cart-{self.id} of Customer {self.Customer.id}'
+        return f'Cart-{self.id} of Customer {self.customer.id}'
 
 class CartItem(TimeStampMixin):
     cart = models.ForeignKey(to=Cart, on_delete=models.CASCADE, related_name='cart_items')
