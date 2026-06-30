@@ -25,9 +25,16 @@ SECRET_KEY = 'django-insecure-kc$z)duxsq64g13bpi51jglt7o@j_3-9hjavp0tokq7s)u+*dl
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# settings.py
 
+# 1. Allow Django to accept traffic from this host
+ALLOWED_HOSTS = ['*']  
 
+# 2. Tell Django's CSRF middleware to explicitly trust your ngrok domain
+CSRF_TRUSTED_ORIGINS = [
+    'https://creation-relatable-grimy.ngrok-free.dev',
+    'https://*.ngrok-free.dev',  # This covers you if the subdomain changes later
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -138,3 +145,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
