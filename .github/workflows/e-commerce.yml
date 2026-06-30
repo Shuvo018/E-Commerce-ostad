@@ -1,4 +1,4 @@
-name: E-Commerce CICD pipeline
+name: ecommerce CICD pipeline
 
 on:
     push:
