@@ -1,0 +1,22 @@
+name: E-Commerce CICD pipeline
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    Test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: git clone
+              uses: actions/checkout@v2
+
+            - name: install dependencies
+              uses: pip install -r requirements.txt
+            
+            - name: Run test
+              uses: python manage.py test
