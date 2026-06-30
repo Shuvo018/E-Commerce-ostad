@@ -15,8 +15,15 @@ jobs:
             - name: git clone
               uses: actions/checkout@v2
 
+            - name: set up python
+              uses: actions/setup-python@v2
+              with:
+                python-version: '3.11'
+
             - name: install dependencies
-              uses: pip install -r requirements.txt
+              run: |
+                python -m pip install --upgrade pip
+                pip install -r requirements.txt
             
             - name: Run test
-              uses: python manage.py test
+              run: python manage.py test
