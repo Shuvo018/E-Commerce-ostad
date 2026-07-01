@@ -29,6 +29,22 @@ def payment_initiate(request):
         messages.error(request, 'Your cart is empty.')
         return redirect('cart_detail')
 
+    # Check if there's already a Pending order for this cart to prevent double-payment
+    existing_pending = Order.objects.filter(customer=customer, status='Pending').first()
+    if existing_pending:
+        # Reuse existing pending order and its Stripe session
+        payment = Payment.objects.filter(order=existing_pending).first()
+        if payment and payment.stripe_session_id:
+            try:
+                session = stripe.checkout.Session.retrieve(payment.stripe_session_id)
+                if session.payment_status != 'paid':
+                    # Session is still valid and not paid, redirect to it
+                    return redirect(session.url, permanent=False)
+            except Exception:
+                pass
+        # If we can't reuse the session, delete the old order and create a new one
+        existing_pending.delete()
+
     # create Order
     total = 0
     for ci in cart.cart_items.all():
@@ -138,3 +154,4 @@ def payment_success(request):
 def payment_cancel(request):
     messages.warning(request, 'Payment was canceled. You can try again.')
     return redirect('cart_detail')
+

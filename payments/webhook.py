@@ -73,9 +73,13 @@ def stripe_webhook(request):
         if order_id:
             order = Order.objects.filter(pk=order_id).first()
             if order:
-                order.status = 'Paid'
-                order.save()
-                print('checkout.session.completed payment paid')
+                # Idempotency: only update if not already paid
+                if order.status != 'Paid':
+                    order.status = 'Paid'
+                    order.save()
+                    print('checkout.session.completed payment paid')
+                else:
+                    print('Order already marked as Paid:', order_id)
             else:
                 print('Order not found for checkout.session.completed:', order_id)
         else:
@@ -91,9 +95,13 @@ def stripe_webhook(request):
         if order_id:
             order = Order.objects.filter(pk=order_id).first()
             if order:
-                order.status = 'Paid'
-                order.save()
-                print('payment paid')
+                # Idempotency: only update if not already paid
+                if order.status != 'Paid':
+                    order.status = 'Paid'
+                    order.save()
+                    print('payment paid')
+                else:
+                    print('Order already marked as Paid:', order_id)
             else:
                 print('Order not found for payment_intent.succeeded:', order_id)
         else:
