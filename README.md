@@ -7,7 +7,7 @@ Key features:
 - product list
 - product category
 - cart product
-- payment gateway 
+- stripe payment gateway 
 
 ## Setup & Run
 

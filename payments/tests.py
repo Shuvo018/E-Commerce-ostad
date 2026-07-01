@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
@@ -113,6 +114,22 @@ class PaymentSuccessViewTests(TestCase):
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, 'Paid')
 
+    @patch('payments.views.stripe.checkout.Session.retrieve')
+    def test_marks_order_paid_when_metadata_is_stripe_object(self, mock_retrieve):
+        mock_metadata = MagicMock()
+        mock_metadata.to_dict.return_value = {'order_id': str(self.order.pk)}
+        mock_session = MagicMock()
+        mock_session.metadata = mock_metadata
+        mock_session.payment_intent = 'pi_test_789'
+        mock_session.id = 'cs_test_789'
+        mock_retrieve.return_value = mock_session
+
+        response = self.client.get(reverse('payment_success'), {'session_id': 'cs_test_789'})
+
+        self.assertRedirects(response, reverse('profile'))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'Paid')
+
 
 class PaymentCancelViewTests(TestCase):
     def test_cancel_redirects_to_cart_detail(self):
@@ -121,3 +138,54 @@ class PaymentCancelViewTests(TestCase):
         self.client.force_login(user)
         response = self.client.get(reverse('payment_cancel'))
         self.assertRedirects(response, reverse('cart_detail'))
+
+
+class WebhookViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='jdoe', password='pass1234')
+        self.profile = CustomerProfile.objects.create(user=self.user, phone='12345')
+        self.address = Address.objects.create(
+            country='Bangladesh', city='Chittagong', postal_code='4000', street='Bibir Hat'
+        )
+        self.order = Order.objects.create(
+            customer=self.profile, address=self.address, status='Pending',
+            total_amount=Decimal('40.00'),
+        )
+
+    @patch('payments.webhook.stripe.Webhook.construct_event')
+    def test_webhook_marks_order_paid_when_order_id_metadata_exists(self, mock_construct_event):
+        metadata_obj = MagicMock()
+        metadata_obj.to_dict.return_value = {'order_id': str(self.order.pk)}
+        obj = {'metadata': metadata_obj}
+        event = MagicMock()
+        event.get.side_effect = lambda key, default=None: {'type': 'payment_intent.succeeded', 'data': {'object': obj}}.get(key, default)
+        mock_construct_event.return_value = event
+
+        response = self.client.post(
+            reverse('stripe_webhook'),
+            data=json.dumps({'id': 'evt_test'}),
+            content_type='application/json',
+            HTTP_STRIPE_SIGNATURE='test_sig'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'Paid')
+
+    @patch('payments.webhook.stripe.Webhook.construct_event')
+    def test_webhook_returns_200_when_order_id_missing(self, mock_construct_event):
+        obj = {'metadata': {}}
+        event = MagicMock()
+        event.get.side_effect = lambda key, default=None: {'type': 'payment_intent.succeeded', 'data': {'object': obj}}.get(key, default)
+        mock_construct_event.return_value = event
+
+        response = self.client.post(
+            reverse('stripe_webhook'),
+            data=json.dumps({'id': 'evt_test'}),
+            content_type='application/json',
+            HTTP_STRIPE_SIGNATURE='test_sig'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'Pending')

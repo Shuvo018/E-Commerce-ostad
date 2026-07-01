@@ -83,42 +83,56 @@ def payment_initiate(request):
     return redirect(session.url, permanent=False)
 
 
+# @login_required
+# def payment_success(request):
+#     session_id = request.GET.get('session_id')
+#     if not session_id:
+#         messages.error(request, 'No payment session provided.')
+#         return redirect('cart_detail')
+
+#     try:
+#         session = stripe.checkout.Session.retrieve(session_id)
+#     except Exception:
+#         messages.error(request, 'Unable to retrieve payment session.')
+#         return redirect('cart_detail')
+
+#     metadata = {}
+#     if session.metadata:
+#         if isinstance(session.metadata, dict):
+#             metadata = session.metadata
+#         elif hasattr(session.metadata, 'to_dict'):
+#             metadata = session.metadata.to_dict()
+#         else:
+#             try:
+#                 metadata = dict(session.metadata)
+#             except Exception:
+#                 metadata = {}
+
+#     order_id = metadata.get('order_id')
+#     if not order_id:
+#         messages.error(request, 'Order not found in payment session.')
+#         return redirect('cart_detail')
+
+#     # order = get_object_or_404(Order, pk=order_id)
+#     # order.status = 'Paid'
+#     # order.save()
+
+#     # # update Payment record if exists
+#     # try:
+#     #     payment = Payment.objects.filter(order=order).last()
+#     #     if payment:
+#     #         payment.transaction_id = session.payment_intent or session.id
+#     #         payment.stripe_session_id = session.id
+#     #         payment.save()
+#     # except Exception:
+#     #     pass
+
+#     messages.success(request, f'Payment successful. Thank you for your order! # {order_id}')
+#     return redirect('profile')
 @login_required
 def payment_success(request):
-    session_id = request.GET.get('session_id')
-    if not session_id:
-        messages.error(request, 'No payment session provided.')
-        return redirect('cart_detail')
-
-    try:
-        session = stripe.checkout.Session.retrieve(session_id)
-    except Exception:
-        messages.error(request, 'Unable to retrieve payment session.')
-        return redirect('cart_detail')
-
-    metadata = dict(session.metadata) if session.metadata else {}
-    order_id = metadata.get('order_id')
-    if not order_id:
-        messages.error(request, 'Order not found in payment session.')
-        return redirect('cart_detail')
-
-    order = get_object_or_404(Order, pk=order_id)
-    order.status = 'Paid'
-    order.save()
-
-    # update Payment record if exists
-    try:
-        payment = Payment.objects.filter(order=order).last()
-        if payment:
-            payment.transaction_id = session.payment_intent or session.id
-            payment.stripe_session_id = session.id
-            payment.save()
-    except Exception:
-        pass
-
-    messages.success(request, 'Payment successful. Thank you for your order!')
+    messages.success(request, f'Payment successful. Thank you for your order! # ')
     return redirect('profile')
-
 
 @login_required
 def payment_cancel(request):
